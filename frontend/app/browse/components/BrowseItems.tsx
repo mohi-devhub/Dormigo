@@ -2,8 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { Search, Heart, ChevronDown, SlidersHorizontal } from 'lucide-react';
-import { getProducts, toFrontendItem } from '@/lib/api/products';
+import { getProducts, searchProducts, toFrontendItem } from '@/lib/api/products';
 import type { Item } from '@/lib/types';
 
 interface BrowseItemsProps {
@@ -11,19 +13,26 @@ interface BrowseItemsProps {
 }
 
 const BrowseItems: React.FC<BrowseItemsProps> = ({ initialItems = [] }) => {
+  const searchParams = useSearchParams();
+  const urlQuery = searchParams.get('q') ?? '';
+
   const [items, setItems] = useState<Item[]>(initialItems);
   const [isLoading, setIsLoading] = useState(initialItems.length === 0);
   const [fetchError, setFetchError] = useState<string | null>(null);
 
   useEffect(() => {
     if (initialItems.length > 0) return;
-    getProducts(0, 50)
-      .then(page => setItems(page.content.map(toFrontendItem)))
+    setIsLoading(true);
+    const load = urlQuery
+      ? searchProducts(urlQuery, 0, 50).then(page => page.content.map(toFrontendItem))
+      : getProducts(0, 50).then(page => page.content.map(toFrontendItem));
+    load
+      .then(setItems)
       .catch(() => setFetchError('Could not load listings from the server.'))
       .finally(() => setIsLoading(false));
-  }, [initialItems.length]);
+  }, [initialItems.length, urlQuery]);
 
-  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [searchTerm, setSearchTerm] = useState<string>(urlQuery);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedCampus, setSelectedCampus] = useState<string>('all');
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 10000]);
@@ -202,9 +211,12 @@ const BrowseItems: React.FC<BrowseItemsProps> = ({ initialItems = [] }) => {
                   <div className="p-5">
                     <h3 className="font-semibold text-gray-900 mb-1 line-clamp-2">{item.title}</h3>
                     <p className="text-sm text-gray-600 mb-4">{item.condition}</p>
-                    <button className="w-full bg-gray-900 hover:bg-gray-800 text-white font-medium py-2.5 px-4 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md hover:shadow-gray-900/10 cursor-pointer">
+                    <Link
+                      href={`/product/${item.id}`}
+                      className="w-full block text-center bg-gray-900 hover:bg-gray-800 text-white font-medium py-2.5 px-4 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md hover:shadow-gray-900/10"
+                    >
                       View Details
-                    </button>
+                    </Link>
                   </div>
                 </div>
               ))}

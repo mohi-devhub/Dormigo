@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Search, User, LogOut, ChevronDown } from 'lucide-react';
+import { Search, User, LogOut, ChevronDown, ShoppingCart } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 
 const Header = () => {
@@ -11,6 +11,7 @@ const Header = () => {
   const router = useRouter();
   const { user, isAuthenticated, logout } = useAuth();
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [headerSearch, setHeaderSearch] = useState('');
   const userMenuRef = useRef<HTMLDivElement>(null);
 
   const navLinks = [
@@ -87,14 +88,36 @@ const Header = () => {
           {/* Right side actions */}
           <div className="flex items-center space-x-3">
             {/* Search */}
-            <div className="hidden lg:block relative">
+            <form
+              className="hidden lg:block relative"
+              onSubmit={(e) => {
+                e.preventDefault();
+                const q = headerSearch.trim();
+                if (q) {
+                  router.push(`/browse?q=${encodeURIComponent(q)}`);
+                  setHeaderSearch('');
+                }
+              }}
+            >
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <input
                 type="text"
                 placeholder="Search items..."
+                value={headerSearch}
+                onChange={(e) => setHeaderSearch(e.target.value)}
                 className="pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent focus:bg-white transition-all w-64 text-sm"
               />
-            </div>
+            </form>
+
+            {isAuthenticated && (
+              <Link
+                href="/cart"
+                className="p-2.5 rounded-xl hover:bg-gray-50 transition-all duration-200 border border-transparent hover:border-gray-200 text-gray-600 hover:text-gray-900"
+                aria-label="Cart"
+              >
+                <ShoppingCart className="w-5 h-5" />
+              </Link>
+            )}
 
             {isAuthenticated && user ? (
               <div className="relative" ref={userMenuRef}>
@@ -116,7 +139,9 @@ const Header = () => {
                     <div className="px-4 py-3 border-b border-gray-100">
                       <p className="font-semibold text-gray-900">{user.firstName} {user.lastName}</p>
                       <p className="text-sm text-gray-600 truncate">{user.email}</p>
-                      <p className="text-xs text-gray-500 mt-1">{user.university}</p>
+                      {user.university && (
+                        <p className="text-xs text-gray-500 mt-1">{user.university}</p>
+                      )}
                     </div>
                     <div className="py-2">
                       <Link

@@ -18,7 +18,7 @@ export interface ProductResponse {
   isAvailable: boolean;
   seller: {
     id: number;
-    fistName: string;
+    firstName: string;
     lastName: string;
     email: string;
   };
@@ -94,4 +94,23 @@ export async function uploadProductImage(productId: number, file: File, isPrimar
 
 export async function getCategories(): Promise<CategoryResponse[]> {
   return apiFetch<CategoryResponse[]>('/api/category/public/all', { skipAuth: true });
+}
+
+export async function getProductById(id: number): Promise<ProductResponse> {
+  return apiFetch<ProductResponse>(`/api/products/public/${id}`, { skipAuth: true });
+}
+
+export async function getMyProducts(): Promise<ProductResponse[]> {
+  return apiFetch<ProductResponse[]>('/api/products/my-products');
+}
+
+export async function deleteProduct(id: number): Promise<void> {
+  return apiFetch<void>(`/api/products/${id}`, { method: 'DELETE' });
+}
+
+export async function updateProduct(id: number, data: CreateProductRequest): Promise<ProductResponse> {
+  return apiFetch<ProductResponse>(`/api/products/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
 }
