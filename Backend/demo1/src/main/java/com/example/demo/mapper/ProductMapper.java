@@ -45,7 +45,7 @@ public class ProductMapper {
         var seller = product.getSeller();
         return ProductResponse.SellerInfo.builder()
                 .id(seller.getId())
-                .fistName(seller.getFirstName())
+                .firstName(seller.getFirstName())
                 .lastName(seller.getLastName())
                 .email(seller.getEmail())
                 .build();
